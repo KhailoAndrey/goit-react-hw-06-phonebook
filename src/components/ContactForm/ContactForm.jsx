@@ -1,4 +1,3 @@
-import PropTypes from 'prop-types';
 import {
   Wrapper,
   Title,
@@ -7,8 +6,12 @@ import {
   AddContactButton,
 } from './ContactForm.styled';
 import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { nanoid } from '@reduxjs/toolkit';
+import { addContact } from 'redux/AddContactsSlice';
 
-export function ContactForm({ onSubmit }) {
+
+export function ContactForm() {
   const [name, setName] = useState('');
   const [number, setNumber] = useState('');
 
@@ -16,6 +19,9 @@ export function ContactForm({ onSubmit }) {
     name,
     number,
   };
+
+  const contacts = useSelector(state => state.contacts);
+  const dispatch = useDispatch();
 
   function handleValue(e) {
     switch (e.target.name) {
@@ -30,9 +36,28 @@ export function ContactForm({ onSubmit }) {
     }
   }
 
+  function checkNewName(newName) {
+    return contacts.find(
+      ({ name }) => name.toLowerCase() === newName.toLowerCase()
+    );
+  }
+
+function addContacts ({ name, number }) {
+    if (!checkNewName(name)) {
+      const contact = {
+        id: nanoid(),
+        name,
+        number,
+      };
+      dispatch(addContact(contact));
+    } else {
+      alert(`${name} is already in contacts!`);
+    }
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    onSubmit(data);
+    addContacts(data);
     reset();
   }
 
@@ -44,7 +69,7 @@ export function ContactForm({ onSubmit }) {
   return (
     <Wrapper>
       <Title>Phonebook</Title>
-      <AddBox onSubmit={handleSubmit}>
+      <AddBox onSubmit={handleSubmit} name='addContact'>
         <Label>Name</Label>
         <input
           type="text"
@@ -66,10 +91,10 @@ export function ContactForm({ onSubmit }) {
           onChange={handleValue}
           placeholder="Введите номер телефона"
           pattern="\+?\d{1,4}?[-.\s]?\(?\d{1,3}?\)?[-.\s]?\d{1,4}[-.\s]?\d{1,4}[-.\s]?\d{1,9}"
-          title="Имя может состоять только из букв, апострофа, тире и пробелов."
+          title="Номер телефона может состоять только из цифр и тире."
           required
         />
-        <AddContactButton type="submit" onClick={handleSubmit}>
+        <AddContactButton type="submit" onClick={handleSubmit} name='addContact'>
           Add contact
         </AddContactButton>
       </AddBox>
@@ -77,7 +102,4 @@ export function ContactForm({ onSubmit }) {
   );
 }
 
-ContactForm.propTypes = {
-  onSubmit: PropTypes.func.isRequired,
-};
 
